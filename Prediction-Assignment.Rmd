@@ -1,0 +1,48 @@
+---
+title: "Prediction-Assignment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Prediction-Assignment-Writeup
+The goal of this project is to predict the manner in which people did the exercise. This is the "classe" variable in the training set. I used 58 variables as predictors to predict the "classe" output. I used the prediction model to predict 20 different test cases of Quiz 4, and I got 100% correct prediction.
+
+### Load packages
+```{r }
+library(lattice)
+library(ggplot2)
+library(caret)
+library(e1071)
+```
+### Random seeding 
+```{r }
+set.seed(12335)
+```
+### Read train and test data
+```{r }
+training = read.csv('pml-training.csv')
+testing = read.csv('pml-testing.csv')
+```
+
+### Perform data cleaning
+```{r }
+trn <- training[ , colSums(is.na(training)) == 0]
+trn2 = subset(trn, select = -c(max_yaw_forearm, min_yaw_forearm, amplitude_yaw_forearm, kurtosis_roll_forearm, kurtosis_picth_forearm, kurtosis_yaw_forearm, skewness_roll_forearm, skewness_pitch_forearm, skewness_yaw_forearm, kurtosis_roll_dumbbell, kurtosis_picth_dumbbell, kurtosis_yaw_dumbbell, skewness_roll_dumbbell, skewness_pitch_dumbbell, skewness_yaw_dumbbell, max_yaw_dumbbell, min_yaw_dumbbell, amplitude_yaw_dumbbell, kurtosis_roll_arm, kurtosis_picth_arm, kurtosis_yaw_arm, skewness_roll_arm, skewness_pitch_arm, skewness_yaw_arm, kurtosis_roll_belt, kurtosis_picth_belt, kurtosis_yaw_belt, skewness_roll_belt, skewness_roll_belt.1, skewness_yaw_belt, max_yaw_belt, min_yaw_belt, amplitude_yaw_belt, X, cvtd_timestamp))
+tst <- testing[ , colSums(is.na(testing)) == 0]
+tst2 <- subset(tst, select = -c(cvtd_timestamp,X))
+```
+### Train the data with three different methods
+```{r }
+modFitLDA <- train(classe ~., data= trn2, method="lda")
+# modFitGBM <- train(classe ~., data= trn2, method="gbm")
+# modFitRF <- train(classe ~., data= trn2, method="rf")
+```
+### Perform testing
+```{r }
+predLDA <- predict(modFitLDA, newdata = tst2)
+# predGBM <- predict(modFitGBM, newdata = tst2)
+# predRF <- predict(modFitRF, newdata = tst2)
+```
