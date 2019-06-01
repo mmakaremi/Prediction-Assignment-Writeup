@@ -11,16 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 The goal of this project is to predict the manner in which people did the exercise. This is the "classe" variable in the training set. I used 58 variables as predictors to predict the "classe" output. I used the prediction model to predict 20 different test cases of Quiz 4, and I got 100% correct prediction.
 
 ### Load packages
-```{r }
+```{r}
 library(lattice)
 library(ggplot2)
 library(caret)
 library(e1071)
 ```
+
 ### Random seeding 
 ```{r }
 set.seed(12335)
 ```
+
 ### Read train and test data
 ```{r }
 training = read.csv('pml-training.csv')
@@ -34,15 +36,31 @@ trn2 = subset(trn, select = -c(max_yaw_forearm, min_yaw_forearm, amplitude_yaw_f
 tst <- testing[ , colSums(is.na(testing)) == 0]
 tst2 <- subset(tst, select = -c(cvtd_timestamp,X))
 ```
-### Train the data with three different methods
-```{r }
-modFitLDA <- train(classe ~., data= trn2, method="lda")
-# modFitGBM <- train(classe ~., data= trn2, method="gbm")
-# modFitRF <- train(classe ~., data= trn2, method="rf")
+### Perform Data Partitioning
+```{r}
+newTraining <- createDataPartition(trn2$classe, p = 0.8, list = FALSE)
+train <- trn2[newTraining,]
+test <- trn2[-newTraining,]
 ```
-### Perform testing
+
+### Train the data
+I have used three different methods to analyze the data, which inclue LDA, GBM and RF. For this work I used 7 fold cross-validation. The following code lines for all three methods are exactly the same, and only the name of the method in modelFit line has changed. Therefore, here I only present the lines for the LDA method. 
+
 ```{r }
-predLDA <- predict(modFitLDA, newdata = tst2)
-# predGBM <- predict(modFitGBM, newdata = tst2)
-# predRF <- predict(modFitRF, newdata = tst2)
+train_control <- trainControl(method="cv", number = 7)
+modelFitLDA <- train(classe ~ ., data = train, method = "lda", trControl = train_control)
+modelFitLDA$finalModel
 ```
+
+### Test the fitting results
+```{r }
+predLDATest <- predict(modelFitLDA, newdata = test)
+confusionMatrixTest <- confusionMatrix(test$classe, predLDATest)
+confusionMatrixTest$table
+
+predLDATrain <- predict(modelFitLDA, newdata = train)
+confusionMatrixTest <- confusionMatrix(train$classe, predLDATrain)
+confusionMatrixTest$table
+```
+
+Useing the above coding with method GBM, I could answer the Quiz 4 questions with 100%. accuracy.

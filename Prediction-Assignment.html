@@ -223,9 +223,17 @@ trn2 = subset(trn, select = -c(max_yaw_forearm, min_yaw_forearm, amplitude_yaw_f
 tst &lt;- testing[ , colSums(is.na(testing)) == 0]
 tst2 &lt;- subset(tst, select = -c(cvtd_timestamp,X))</code></pre>
 </div>
-<div id="train-the-data-with-three-different-methods" class="section level3">
-<h3>Train the data with three different methods</h3>
-<pre class="r"><code>modFitLDA &lt;- train(classe ~., data= trn2, method=&quot;lda&quot;)</code></pre>
+<div id="perform-data-partitioning" class="section level3">
+<h3>Perform Data Partitioning</h3>
+<pre class="r"><code>newTraining &lt;- createDataPartition(trn2$classe, p = 0.8, list = FALSE)
+train &lt;- trn2[newTraining,]
+test &lt;- trn2[-newTraining,]</code></pre>
+</div>
+<div id="train-the-data" class="section level3">
+<h3>Train the data</h3>
+<p>I have used three different methods to analyze the data, which inclue LDA, GBM and RF. For this work I used 7 fold cross-validation. The following code lines for all three methods are exactly the same, and only the name of the method in modelFit line has changed. Therefore, here I only present the lines for the LDA method.</p>
+<pre class="r"><code>train_control &lt;- trainControl(method=&quot;cv&quot;, number = 7)
+modelFitLDA &lt;- train(classe ~ ., data = train, method = &quot;lda&quot;, trControl = train_control)</code></pre>
 <pre><code>## Warning in lda.default(x, grouping, ...): variables are collinear
 
 ## Warning in lda.default(x, grouping, ...): variables are collinear
@@ -240,51 +248,254 @@ tst2 &lt;- subset(tst, select = -c(cvtd_timestamp,X))</code></pre>
 
 ## Warning in lda.default(x, grouping, ...): variables are collinear
 
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
-## Warning in lda.default(x, grouping, ...): variables are collinear
-
 ## Warning in lda.default(x, grouping, ...): variables are collinear</code></pre>
-<pre class="r"><code># modFitGBM &lt;- train(classe ~., data= trn2, method=&quot;gbm&quot;)
-# modFitRF &lt;- train(classe ~., data= trn2, method=&quot;rf&quot;)</code></pre>
+<pre class="r"><code>modelFitLDA$finalModel</code></pre>
+<pre><code>## Call:
+## lda(x, grouping = y)
+## 
+## Prior probabilities of groups:
+##         A         B         C         D         E 
+## 0.2843493 0.1935155 0.1744060 0.1638958 0.1838334 
+## 
+## Group means:
+##   user_namecarlitos user_namecharles user_nameeurico user_namejeremy
+## A         0.1474014        0.1577061       0.1603943       0.2107975
+## B         0.1757735        0.1895984       0.1586570       0.1277156
+## C         0.1406136        0.1574142       0.1449963       0.1939372
+## D         0.1430237        0.2044306       0.1768364       0.1640109
+## E         0.1677062        0.1964657       0.1493416       0.1569647
+##   user_namepedro raw_timestamp_part_1 raw_timestamp_part_2 new_windowyes
+## A      0.1162634           1322812420             501810.2    0.01881720
+## B      0.1421988           1322840416             495189.8    0.02238315
+## C      0.1428050           1322825708             502393.0    0.02191381
+## D      0.1484648           1322821911             506587.0    0.02215313
+## E      0.1403326           1322836531             507361.1    0.02182952
+##   num_window roll_belt   pitch_belt   yaw_belt total_accel_belt
+## A   385.8976  59.00313  0.412605287 -12.529693         10.63978
+## B   496.8134  65.73713  0.005714286 -12.376550         11.22219
+## C   483.9839  64.55983 -1.178685172  -7.350310         11.15413
+## D   432.8733  62.07226  1.783738826 -16.450183         11.39215
+## E   371.6026  74.41515  0.646261261  -5.372322         12.73943
+##   gyros_belt_x gyros_belt_y gyros_belt_z accel_belt_x accel_belt_y
+## A -0.006960125   0.03991263   -0.1215412    -6.351030     28.80802
+## B -0.009927584   0.04163594   -0.1381534    -4.989138     32.29394
+## C -0.013542732   0.03990869   -0.1339664    -3.883126     30.95106
+## D -0.013824330   0.03656044   -0.1398484    -8.294598     30.93510
+## E  0.008087318   0.03931739   -0.1270721    -4.445599     29.16667
+##   accel_belt_z magnet_belt_x magnet_belt_y magnet_belt_z   roll_arm
+## A    -62.12567      57.76613      601.9767     -338.6055  0.8914113
+## B    -74.53983      49.29559      599.1050     -337.4961 32.7752897
+## C    -70.59094      57.63185      600.0628     -337.4280 24.6063002
+## D    -70.84415      48.99067      595.0031     -339.7415 21.7508822
+## E    -91.75745      63.49653      567.3226     -378.9096 20.2628829
+##    pitch_arm    yaw_arm total_accel_arm gyros_arm_x gyros_arm_y
+## A   3.298949 -10.980759        27.41151  0.02561828  -0.2174933
+## B  -6.571952   7.749773        26.46346  0.03801843  -0.2955793
+## C  -1.835431   4.073232        24.25018  0.09452155  -0.2628926
+## D -10.022577   3.624357        23.42791  0.02637388  -0.2529965
+## E -12.525769  -1.480329        24.66805  0.03508663  -0.2820859
+##   gyros_arm_z accel_arm_x accel_arm_y accel_arm_z magnet_arm_x
+## A   0.2599552  -130.65838    47.61066   -76.25381    -17.81295
+## B   0.2620704   -40.34595    26.18400   -93.74589    234.85517
+## C   0.2764317   -78.15449    41.80606   -53.27538    159.44595
+## D   0.2737194    15.91411    23.21376   -47.69374    396.23008
+## E   0.2840159   -19.05683    16.69647   -76.85724    321.47436
+##   magnet_arm_y magnet_arm_z roll_dumbbell pitch_dumbbell yaw_dumbbell
+## A    234.23230     408.3103      21.18923     -18.885806    1.9853599
+## B    132.66491     196.7637      34.65188       3.080349   14.8216286
+## C    190.57925     363.6271     -13.02559     -25.011028  -17.2177384
+## D     98.29110     297.5383      50.19802      -2.478147    0.2460625
+## E     85.20894     216.0502      26.71864      -6.947691    5.7123006
+##   total_accel_dumbbell gyros_dumbbell_x gyros_dumbbell_y gyros_dumbbell_z
+## A             14.68414        0.1244176       0.03383961       -0.0836940
+## B             14.39302        0.1697334       0.01309085       -0.1476761
+## C             13.01497        0.1924288       0.05871804       -0.1523630
+## D             11.44656        0.2033579       0.01397979       -0.1317917
+## E             14.40090        0.1374532       0.11320166       -0.1417186
+##   accel_dumbbell_x accel_dumbbell_y accel_dumbbell_z magnet_dumbbell_x
+## A      -50.5719086         52.51299        -55.50134         -384.9662
+## B       -0.8887426         68.12837        -15.35221         -240.5885
+## C      -40.8907962         31.15851        -53.96275         -373.3342
+## D      -22.8915663         53.65449        -34.53906         -313.8768
+## E      -18.6836452         55.66043        -24.66008         -291.0565
+##   magnet_dumbbell_y magnet_dumbbell_z roll_forearm pitch_forearm
+## A          217.2556          13.13723     25.37092     -6.815358
+## B          255.6712          49.56353     32.33148     14.554322
+## C          160.6165          63.59313     59.59990     12.283137
+## D          216.2654          55.39526     17.76944     27.987007
+## E          236.9317          71.41684     37.96720     16.782859
+##   yaw_forearm total_accel_forearm gyros_forearm_x gyros_forearm_y
+## A    25.62671            32.09969       0.1708737     0.126648746
+## B    14.87714            35.43417       0.1555267     0.073801843
+## C    38.85821            34.93828       0.2101790     0.057629657
+## D     3.85522            36.12709       0.1263039    -0.001453556
+## E    11.19264            36.73112       0.1384165     0.060495495
+##   gyros_forearm_z accel_forearm_x accel_forearm_y accel_forearm_z
+## A       0.1716219     -0.04435484        169.5587       -57.54368
+## B       0.1804510    -75.33936801        138.6952       -46.69487
+## C       0.1409350    -46.83893353        210.5358       -60.91819
+## D       0.1179246   -154.81849981        151.6739       -48.68480
+## E       0.1568572    -71.81704782        146.0845       -59.32710
+##   magnet_forearm_x magnet_forearm_y magnet_forearm_z
+## A        -194.8889         470.8786         403.4151
+## B        -324.5994         281.0151         376.1178
+## C        -330.1180         497.1611         459.9540
+## D        -455.4279         316.6685         368.0948
+## E        -331.5312         279.8867         352.0180
+## 
+## Coefficients of linear discriminants:
+##                                LD1           LD2           LD3
+## user_namecarlitos     2.879527e+01  2.454826e+01 -8.941789e+00
+## user_namecharles      1.122926e+01  2.615290e+00 -3.495661e+00
+## user_nameeurico       2.344650e+01  2.083772e+01 -9.883544e+00
+## user_namejeremy       2.505397e+01  2.116901e+01 -7.847357e+00
+## user_namepedro        1.776607e+01  7.477964e+00 -8.726923e+00
+## raw_timestamp_part_1 -3.373873e-06 -9.416484e-06  1.570664e-06
+## raw_timestamp_part_2 -7.491966e-09 -1.755435e-08 -6.025426e-08
+## new_windowyes         1.361392e-01  8.562974e-03  1.248798e-01
+## num_window            3.312525e-04 -9.101719e-04  1.367000e-03
+## roll_belt             1.506785e-01  1.553426e-01 -1.485444e-03
+## pitch_belt           -5.279097e-02 -2.642637e-02 -2.921465e-02
+## yaw_belt             -6.206257e-03  2.593366e-03 -1.013759e-02
+## total_accel_belt      4.015274e-02  2.515955e-02 -2.703113e-01
+## gyros_belt_x          3.925250e-01 -1.703288e-01  8.607615e-01
+## gyros_belt_y         -3.207317e-01  4.219874e-01 -2.051237e+00
+## gyros_belt_z          4.164457e-01 -5.284265e-02  6.848156e-01
+## accel_belt_x          2.254840e-02  2.368816e-03  1.268062e-02
+## accel_belt_y         -1.771853e-02 -7.251656e-03  4.046488e-02
+## accel_belt_z         -1.381350e-02 -1.049964e-02  6.941457e-03
+## magnet_belt_x         3.677675e-03  1.210975e-02 -2.314561e-02
+## magnet_belt_y        -3.137574e-03  1.678959e-02 -9.154262e-03
+## magnet_belt_z         1.702803e-02  6.451383e-03  6.684220e-03
+## roll_arm              1.961144e-03  3.556034e-04  2.126011e-03
+## pitch_arm            -5.354626e-03  3.244149e-03  6.896281e-03
+## yaw_arm               3.945091e-04 -1.567178e-03  1.080987e-03
+## total_accel_arm       2.325627e-03 -1.659015e-02 -2.692427e-02
+## gyros_arm_x           7.808538e-02 -4.108959e-03 -5.064013e-02
+## gyros_arm_y           2.362758e-02 -8.089820e-02 -1.470041e-01
+## gyros_arm_z          -8.470598e-02 -4.539239e-02 -8.646879e-02
+## accel_arm_x          -3.568829e-03 -4.027047e-03 -8.149304e-03
+## accel_arm_y          -2.368884e-03  6.928291e-03  4.649337e-03
+## accel_arm_z           8.491868e-03 -1.247906e-03  1.911936e-03
+## magnet_arm_x         -3.080331e-05 -2.391573e-04  1.641496e-03
+## magnet_arm_y         -1.518554e-03 -3.145964e-03  3.206540e-03
+## magnet_arm_z         -3.347039e-03 -1.274953e-03 -6.120570e-03
+## roll_dumbbell        -2.911110e-05 -4.570299e-03 -2.405547e-03
+## pitch_dumbbell       -4.666236e-03 -1.291843e-03 -5.440296e-03
+## yaw_dumbbell         -5.291844e-03  9.473650e-03 -2.878587e-03
+## total_accel_dumbbell  1.003501e-01  4.516362e-02 -4.584233e-04
+## gyros_dumbbell_x      1.637007e-01 -4.896510e-01  1.020854e-01
+## gyros_dumbbell_y      2.085900e-01 -3.083950e-01 -7.290197e-02
+## gyros_dumbbell_z      5.179353e-02 -2.854668e-01  9.726535e-02
+## accel_dumbbell_x      2.001574e-02  6.671296e-03 -4.231366e-04
+## accel_dumbbell_y      1.051470e-02  3.936382e-03  2.881932e-04
+## accel_dumbbell_z      2.282875e-04  2.142101e-03  3.523079e-03
+## magnet_dumbbell_x    -7.500131e-03 -6.791279e-04  5.986406e-03
+## magnet_dumbbell_y    -1.890734e-03  2.422249e-03 -1.523795e-03
+## magnet_dumbbell_z     1.325739e-02 -1.321807e-02 -2.890917e-03
+## roll_forearm          1.528720e-03  6.295052e-04  5.919957e-04
+## pitch_forearm         1.101174e-02 -1.608693e-02  3.538770e-03
+## yaw_forearm          -8.868823e-04  1.823194e-04  1.056912e-03
+## total_accel_forearm   2.584824e-02 -7.543110e-03  2.437840e-03
+## gyros_forearm_x      -4.449720e-03 -9.916635e-02  1.304364e-01
+## gyros_forearm_y      -8.551753e-03 -2.928683e-02 -7.368403e-03
+## gyros_forearm_z       5.671671e-02  8.512322e-02 -3.696669e-03
+## accel_forearm_x       3.724749e-03  7.529786e-03  3.505801e-03
+## accel_forearm_y       1.039786e-03 -1.134118e-03 -8.034239e-04
+## accel_forearm_z       2.022320e-03  5.526893e-03  5.387457e-03
+## magnet_forearm_x     -1.468930e-03 -2.115121e-03 -1.014452e-03
+## magnet_forearm_y     -9.640593e-04 -8.669484e-04 -1.789603e-04
+## magnet_forearm_z     -8.520140e-04 -1.132204e-03 -9.281773e-04
+##                                LD4
+## user_namecarlitos     7.486914e+00
+## user_namecharles      2.276510e+00
+## user_nameeurico       5.762474e+00
+## user_namejeremy       5.325107e+00
+## user_namepedro        3.264562e+00
+## raw_timestamp_part_1 -8.657022e-07
+## raw_timestamp_part_2  2.792457e-08
+## new_windowyes        -4.594963e-03
+## num_window            2.584905e-04
+## roll_belt             8.635964e-02
+## pitch_belt           -4.137116e-03
+## yaw_belt             -3.252116e-03
+## total_accel_belt     -1.510067e-01
+## gyros_belt_x          2.075532e-01
+## gyros_belt_y          1.330086e+00
+## gyros_belt_z         -6.764662e-01
+## accel_belt_x          9.335619e-03
+## accel_belt_y          1.965749e-02
+## accel_belt_z          9.913886e-03
+## magnet_belt_x         6.445507e-04
+## magnet_belt_y         5.484700e-03
+## magnet_belt_z         4.286513e-03
+## roll_arm              5.699808e-04
+## pitch_arm             1.280642e-03
+## yaw_arm              -1.300940e-03
+## total_accel_arm      -1.792612e-02
+## gyros_arm_x           2.747699e-02
+## gyros_arm_y           2.094817e-01
+## gyros_arm_z           1.896007e-01
+## accel_arm_x          -1.653322e-03
+## accel_arm_y           3.351330e-03
+## accel_arm_z          -7.518157e-03
+## magnet_arm_x          1.266206e-03
+## magnet_arm_y          1.468689e-03
+## magnet_arm_z          1.981738e-03
+## roll_dumbbell        -8.717462e-03
+## pitch_dumbbell       -3.516524e-03
+## yaw_dumbbell         -3.163100e-03
+## total_accel_dumbbell  5.695201e-03
+## gyros_dumbbell_x      1.575877e-01
+## gyros_dumbbell_y      2.556889e-01
+## gyros_dumbbell_z      1.222561e-01
+## accel_dumbbell_x      5.131964e-03
+## accel_dumbbell_y      1.545126e-03
+## accel_dumbbell_z     -9.788171e-04
+## magnet_dumbbell_x    -2.653797e-03
+## magnet_dumbbell_y    -2.639444e-03
+## magnet_dumbbell_z     9.936959e-03
+## roll_forearm          1.011177e-03
+## pitch_forearm         1.970272e-03
+## yaw_forearm           1.286146e-03
+## total_accel_forearm   1.466751e-03
+## gyros_forearm_x       1.399821e-01
+## gyros_forearm_y       2.715120e-03
+## gyros_forearm_z      -5.360116e-02
+## accel_forearm_x       2.946882e-03
+## accel_forearm_y      -2.339841e-03
+## accel_forearm_z      -1.442257e-03
+## magnet_forearm_x     -6.104288e-04
+## magnet_forearm_y      6.064649e-04
+## magnet_forearm_z      1.157072e-03
+## 
+## Proportion of trace:
+##    LD1    LD2    LD3    LD4 
+## 0.5110 0.2410 0.1532 0.0947</code></pre>
 </div>
-<div id="perform-testing" class="section level3">
-<h3>Perform testing</h3>
-<pre class="r"><code>predLDA &lt;- predict(modFitLDA, newdata = tst2)
-# predGBM &lt;- predict(modFitGBM, newdata = tst2)
-# predRF &lt;- predict(modFitRF, newdata = tst2)</code></pre>
+<div id="test-the-fitting-results" class="section level3">
+<h3>Test the fitting results</h3>
+<pre class="r"><code>predLDATest &lt;- predict(modelFitLDA, newdata = test)
+confusionMatrixTest &lt;- confusionMatrix(test$classe, predLDATest)
+confusionMatrixTest$table</code></pre>
+<pre><code>##           Reference
+## Prediction   A   B   C   D   E
+##          A 958  33  48  77   0
+##          B 108 516  78  28  29
+##          C  58  72 473  70  11
+##          D  35  27  69 497  15
+##          E  27  84  44  54 512</code></pre>
+<pre class="r"><code>predLDATrain &lt;- predict(modelFitLDA, newdata = train)
+confusionMatrixTest &lt;- confusionMatrix(train$classe, predLDATrain)
+confusionMatrixTest$table</code></pre>
+<pre><code>##           Reference
+## Prediction    A    B    C    D    E
+##          A 3832  125  213  292    2
+##          B  420 2029  381  101  107
+##          C  241  254 1882  322   39
+##          D  156   91  310 1975   41
+##          E  110  335  185  244 2012</code></pre>
+<p>Useing the above coding with method GBM, I could answer the Quiz 4 questions with 100%. accuracy.</p>
 </div>
 
 
